@@ -1,0 +1,50 @@
+version: '3'
+
+networks:
+  ITutor:
+    driver: bridge
+
+services:
+  api:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - ITutor
+    environment: 
+      DATABASE_URL: postgres://user:password@postgres:5432/itutor
+      PORT: 3000
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --include /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - ITutor
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - '5432:5432'
+    networks:
+      - ITutor
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: itutor
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+
+volumes:
+  pgdata:
+    external: true
